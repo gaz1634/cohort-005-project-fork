@@ -15,9 +15,9 @@ import { YouTubePlayer } from "~/components/youtube-player";
 
 type FullLessonData = Extract<LessonLoaderData, { view: "full" }>;
 
-export const AUTOPLAY_KEY = "cadence-autoplay";
+const AUTOPLAY_KEY = "cadence-autoplay";
 
-export function useAutoplay() {
+function useAutoplay() {
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
