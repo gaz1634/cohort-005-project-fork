@@ -1,7 +1,7 @@
 import type { LessonLoaderData } from "./types";
 import { useState } from "react";
 import { useFetcher } from "react-router";
-import { describeNoteDraft } from "~/modules/lesson-notes";
+import { describeNoteDraft, type NoteDraft } from "~/modules/lesson-notes";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
@@ -30,8 +30,11 @@ export function BookmarkToggle({ bookmarked }: { bookmarked: boolean }) {
 export function LessonNote({ note }: { note: LessonLoaderData["note"] }) {
   const fetcher = useFetcher<{ ok: boolean; error?: string }>();
   const [body, setBody] = useState(note?.body ?? "");
+  const [submittedBody, setSubmittedBody] = useState<string | null>(null);
   const isSaving = fetcher.state !== "idle";
-  const error = fetcher.data?.error;
+  // An error is about the text that was sent; once the box is edited it no
+  // longer applies.
+  const error = body === submittedBody ? fetcher.data?.error : undefined;
   const draft = describeNoteDraft(body, note?.body);
 
   return (
@@ -45,7 +48,11 @@ export function LessonNote({ note }: { note: LessonLoaderData["note"] }) {
           Jot things down while you watch. Only you can read these.
         </p>
 
-        <fetcher.Form method="post" className="space-y-2">
+        <fetcher.Form
+          method="post"
+          className="space-y-2"
+          onSubmit={() => setSubmittedBody(body)}
+        >
           <input type="hidden" name="intent" value="save-note" />
           <Textarea
             name="body"
@@ -56,27 +63,44 @@ export function LessonNote({ note }: { note: LessonLoaderData["note"] }) {
             aria-label="Your notes"
             className="min-h-28 resize-y"
           />
-          <div className="flex items-center gap-3">
-            <Button
-              type="submit"
-              size="sm"
-              disabled={isSaving || !draft.canSave}
-            >
-              {isSaving ? "Saving..." : "Save note"}
-            </Button>
-            <NoteStatus error={error} unsaved={draft.unsaved} note={note} />
-            <span
-              className={cn(
-                "ml-auto text-xs",
-                draft.tooLong ? "text-destructive" : "text-muted-foreground"
-              )}
-            >
-              {draft.length} / {draft.max}
-            </span>
-          </div>
+          <NoteSaveRow
+            isSaving={isSaving}
+            draft={draft}
+            error={error}
+            note={note}
+          />
         </fetcher.Form>
       </CardContent>
     </Card>
+  );
+}
+
+function NoteSaveRow({
+  isSaving,
+  draft,
+  error,
+  note,
+}: {
+  isSaving: boolean;
+  draft: NoteDraft;
+  error: string | undefined;
+  note: LessonLoaderData["note"];
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <Button type="submit" size="sm" disabled={isSaving || !draft.canSave}>
+        {isSaving ? "Saving..." : "Save note"}
+      </Button>
+      <NoteStatus error={error} unsaved={draft.unsaved} note={note} />
+      <span
+        className={cn(
+          "ml-auto text-xs",
+          draft.tooLong ? "text-destructive" : "text-muted-foreground"
+        )}
+      >
+        {draft.length} / {draft.max}
+      </span>
+    </div>
   );
 }
 
