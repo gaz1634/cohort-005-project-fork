@@ -1,5 +1,5 @@
 import type { LessonLoaderData } from "./types";
-import { LessonBreadcrumb } from "./locked-lesson";
+import { LessonBreadcrumb } from "./lesson-breadcrumb";
 import { BookmarkToggle, LessonNote } from "./lesson-note";
 import { CurriculumSidebar } from "./curriculum-sidebar";
 import { QuizSection } from "./quiz-section";
